@@ -1,52 +1,46 @@
-// /api/shopify-callback.js
-// Handles the OAuth callback from Shopify, exchanges code for access token
+var https = require("https");
 
-export default async function handler(req, res) {
-  const { code, shop, state } = req.query;
-
+module.exports = function handler(req, res) {
+  var code = req.query.code;
+  var shop = req.query.shop;
+  var state = req.query.state;
   if (!code || !shop) {
     return res.status(400).json({ error: "Missing code or shop" });
   }
-
-  // Verify nonce
-  const cookies = req.headers.cookie || "";
-  const nonceCookie = cookies.split(";").find(c => c.trim().startsWith("shopify_nonce="));
-  const savedNonce = nonceCookie ? nonceCookie.split("=")[1] : null;
-
-  if (state !== savedNonce) {
-    return res.status(403).json({ error: "Invalid state parameter" });
-  }
-
-  try {
-    // Exchange code for access token
-    const tokenRes = await fetch(`https://${shop}/admin/oauth/access_token`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        client_id: process.env.SHOPIFY_API_KEY,
-        client_secret: process.env.SHOPIFY_API_SECRET,
-        code: code
-      })
+  var postData = JSON.stringify({
+    client_id: process.env.SHOPIFY_API_KEY,
+    client_secret: process.env.SHOPIFY_API_SECRET,
+    code: code
+  });
+  var options = {
+    hostname: shop,
+    path: "/admin/oauth/access_token",
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(postData) }
+  };
+  var request = https.request(options, function(response) {
+    var body = "";
+    response.on("data", function(chunk) { body += chunk; });
+    response.on("end", function() {
+      try {
+        var data = JSON.parse(body);
+        if (!data.access_token) {
+          return res.status(400).json({ error: "No access token", details: data });
+        }
+        var appUrl = process.env.APP_URL || ("https://" + req.headers.host);
+        res.setHeader("Set-Cookie", [
+          "shopify_token=" + data.access_token + "; Path=/; HttpOnly; SameSite=Lax; Secure; Max-Age=86400",
+          "shopify_shop=" + shop + "; Path=/; SameSite=Lax; Secure; Max-Age=86400"
+        ]);
+        res.redirect(302, appUrl + "/?shopify=connected&shop=" + encodeURIComponent(shop));
+      } catch(e) {
+        res.status(500).json({ error: "Parse error", message: e.message });
+      }
     });
-
-    const tokenData = await tokenRes.json();
-
-    if (!tokenData.access_token) {
-      return res.status(400).json({ error: "Failed to get access token", details: tokenData });
-    }
-
-    // Store token in a secure cookie (in production, use a database)
-    const appUrl = process.env.APP_URL || `https://${req.headers.host}`;
-
-    res.setHeader("Set-Cookie", [
-      `shopify_token=${tokenData.access_token}; Path=/; HttpOnly; SameSite=Lax; Secure; Max-Age=86400`,
-      `shopify_shop=${shop}; Path=/; SameSite=Lax; Secure; Max-Age=86400`
-    ]);
-
-    // Redirect back to app with success flag
-    res.redirect(302, `${appUrl}/?shopify=connected&shop=${encodeURIComponent(shop)}`);
-
-  } catch (err) {
-    res.status(500).json({ error: "OAuth failed", message: err.message });
-  }
-}
+  });
+  request.on("error", function(e) {
+    res.status(500).json({ error: "Request failed", message: e.message });
+  });
+  request.write(postData);
+  request.end();
+};
