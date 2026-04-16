@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Vantage - AI CFO</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#F1F3F5;color:#1E293B;display:flex;height:100vh;overflow:hidden}
+button{font-family:inherit;cursor:pointer}input,select,textarea{font-family:inherit}input:focus,select:focus{outline:none}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+
+/* Sidebar */
+.sidebar{width:220px;background:#fff;border-right:1px solid #E2E8F0;display:flex;flex-direction:column;height:100vh;flex-shrink:0}
+.sb-logo{padding:14px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #F1F5F9}
+.sb-logo-icon{width:24px;height:24px;border-radius:5px;background:#0A6847;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:800}
+.sb-logo-text{font-size:14px;font-weight:700}
+.sb-proj{padding:8px 12px;border-bottom:1px solid #F1F5F9}
+.sb-proj-btn{width:100%;text-align:left;padding:6px 10px;border-radius:5px;border:1px solid #E2E8F0;background:#FAFBFD;font-size:11px;font-weight:600;color:#475569;display:flex;justify-content:space-between;align-items:center}
+.sb-nav{flex:1;overflow-y:auto;padding:8px 0}
+.sb-section{padding:4px 12px;font-size:9px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:0.08em;margin-top:10px;margin-bottom:2px}
+.sb-item{display:flex;align-items:center;gap:8px;padding:7px 16px;font-size:12px;font-weight:500;color:#64748B;border:none;background:none;width:100%;text-align:left;border-radius:0;transition:all 0.1s}
+.sb-item:hover{background:#F8FAFC;color:#1E293B}
+.sb-item.active{background:#F0FDF4;color:#0A6847;font-weight:600;border-right:2px solid #0A6847}
+.sb-item-icon{width:18px;text-align:center;font-size:13px;opacity:0.7}
+.sb-bottom{padding:10px 12px;border-top:1px solid #F1F5F9}
+
+/* Main */
+.main-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:44px;background:#fff;border-bottom:1px solid #E2E8F0;display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex-shrink:0}
+.topbar-title{font-size:14px;font-weight:700}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.acct-btn{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:5px;border:1px solid #E2E8F0;background:#fff;font-size:11px;font-weight:600;color:#475569}
+.content{flex:1;overflow-y:auto;padding:20px;background:#F1F3F5}
+
+/* Cards */
+.card{background:#fff;border:1px solid #E2E8F0;border-radius:8px;overflow:hidden;margin-bottom:10px}
+.card-h{padding:10px 14px;border-bottom:1px solid #F1F5F9;display:flex;justify-content:space-between;align-items:center}
+.card-t{font-size:12px;font-weight:700}
+.card-b{padding:14px}
+.tag{font-size:8px;font-weight:700;padding:1px 5px;border-radius:3px;margin-left:6px}
+.tag-a{background:#DBEAFE;color:#1D4ED8}.tag-s{background:#FEF3C7;color:#92400E}
+
+/* KPI */
+.kpi-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-bottom:14px}
+.kpi{background:#fff;border:1px solid #E2E8F0;border-radius:8px;padding:12px 14px}
+.kpi-l{font-size:9px;font-weight:600;color:#94A3B8;text-transform:uppercase;margin-bottom:4px;letter-spacing:0.04em}
+.kpi-v{font-size:18px;font-weight:700}
+.kpi-s{font-size:9px;color:#94A3B8;margin-top:3px}
+
+/* Inputs */
+.ig{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:8px 10px}
+.il{font-size:10px;font-weight:600;color:#64748B;margin-bottom:3px}
+.iw{display:flex;align-items:center;height:32px;border-radius:5px;padding:0 8px;border:1px solid #E2E8F0;background:#fff}
+.iw:focus-within{border-color:#0A6847;box-shadow:0 0 0 2px rgba(10,104,71,0.06)}
+.iw input{flex:1;border:none;font-size:12px;font-weight:500;color:#1E293B;background:transparent;width:100%}
+.ip{font-size:11px;color:#94A3B8;margin-right:3px}.is{font-size:10px;color:#94A3B8;margin-left:3px}
+
+/* Fin rows */
+.fr{display:flex;justify-content:space-between;align-items:center;padding:4px 0}
+.fr.b{padding:6px 0}.fr.b .fr-l{font-size:12px;font-weight:700;color:#1E293B}.fr.b .fr-v{font-size:12px;font-weight:700;color:#1E293B}
+.fr.i{margin-left:14px}.fr.bt{border-top:1px solid #F1F5F9}
+.fr-l{font-size:11px;color:#64748B}.fr-v{font-size:11px;font-weight:500;color:#64748B}
+.fr-v.ed{cursor:pointer;border-bottom:1px dashed #CBD5E1}
+.green{color:#0A6847!important}.red{color:#DC2626!important}.blue{color:#3B5BDB!important}.amber{color:#B45309!important}.ocean{color:#1971C2!important}
+
+/* Widgets */
+.widget-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px;margin-bottom:14px}
+.widget{background:#fff;border:1px solid #E2E8F0;border-radius:8px;padding:14px}
+.widget-t{font-size:11px;font-weight:700;color:#1E293B;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+
+/* Empty */
+.empty{text-align:center;padding:40px 20px;color:#94A3B8}
+.empty-i{font-size:32px;margin-bottom:8px}.empty-t{font-size:14px;font-weight:700;color:#475569;margin-bottom:4px}
+.empty-d{font-size:12px;margin-bottom:16px;max-width:400px;margin-left:auto;margin-right:auto}
+
+/* Buttons */
+.btn-p{padding:8px 20px;border-radius:6px;border:none;background:#0A6847;color:#fff;font-size:12px;font-weight:600}
+.btn-a{width:100%;padding:8px;border-radius:6px;border:1px dashed #CBD5E1;background:transparent;color:#64748B;font-size:11px;font-weight:600}
+.btn-s{padding:4px 10px;border-radius:4px;border:1px solid #E2E8F0;background:#fff;font-size:10px;font-weight:600;color:#64748B}
+.btn-d{padding:5px 6px;border:none;background:#FEF2F2;color:#DC2626;border-radius:3px;font-size:9px}
+
+/* Entity */
+.eg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;margin-bottom:10px}
+.eb{padding:6px;border-radius:4px;text-align:left;font-size:10px;font-weight:600;border:1px solid #E2E8F0;background:#fff;color:#1E293B}
+.eb.ac{border-color:#0A6847;background:#F0FDF4;color:#0A6847}
+
+/* Platform */
+.pg{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px}
+.pl{border:1px solid #E2E8F0;border-radius:6px;padding:12px}.pl-n{font-size:12px;font-weight:700;margin-bottom:6px}
+.pl-b{width:100%;padding:6px;border-radius:4px;border:none;background:#F0FDF4;color:#0A6847;font-size:10px;font-weight:600}
+
+/* Chat */
+.chat-f{position:fixed;bottom:70px;right:20px;width:360px;max-height:480px;background:#fff;border:1px solid #E2E8F0;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.12);z-index:200;display:flex;flex-direction:column;overflow:hidden}
+.chat-hd{padding:10px 14px;border-bottom:1px solid #F1F5F9;display:flex;justify-content:space-between;align-items:center;background:#FAFBFD}
+.chat-bd{flex:1;overflow-y:auto;padding:12px;max-height:340px}
+.chat-m{max-width:85%;padding:8px 12px;border-radius:8px;font-size:11px;line-height:1.5;white-space:pre-wrap;margin-bottom:8px}
+.chat-m.u{background:#0A6847;color:#fff;margin-left:auto}.chat-m.a{background:#F8FAFC;color:#1E293B;border:1px solid #E2E8F0}
+.chat-in{padding:10px;border-top:1px solid #F1F5F9;display:flex;gap:6px}
+.chat-in input{flex:1;padding:8px 10px;border-radius:6px;border:1px solid #E2E8F0;font-size:11px}
+.chat-snd{padding:8px 14px;border-radius:6px;border:none;background:#0A6847;color:#fff;font-size:11px;font-weight:600}
+.chat-tog{position:fixed;bottom:20px;right:20px;width:48px;height:48px;border-radius:50%;background:#0A6847;color:#fff;border:none;box-shadow:0 4px 12px rgba(10,104,71,0.3);font-size:14px;font-weight:700;z-index:200;display:flex;align-items:center;justify-content:center}
+
+/* Account dropdown */
+.acct-drop{position:absolute;top:44px;right:16px;background:#fff;border:1px solid #E2E8F0;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.1);z-index:300;width:200px;padding:6px}
+.acct-item{display:block;width:100%;text-align:left;padding:8px 10px;border-radius:4px;border:none;background:transparent;font-size:11px;color:#475569;font-weight:500}
+.acct-item:hover{background:#F8FAFC;color:#1E293B}
+
+.hidden{display:none}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+
+/* Tooltips */
+.tip{position:relative;display:inline-flex;align-items:center}
+.tip .tip-text{visibility:hidden;background:#1E293B;color:#fff;font-size:10px;font-weight:400;line-height:1.4;padding:6px 10px;border-radius:6px;position:absolute;z-index:999;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);white-space:normal;width:200px;box-shadow:0 4px 12px rgba(0,0,0,0.15);pointer-events:none;opacity:0;transition:opacity 0.15s}
+.tip .tip-text::after{content:"";position:absolute;top:100%;left:50%;margin-left:-4px;border-width:4px;border-style:solid;border-color:#1E293B transparent transparent transparent}
+.tip:hover .tip-text{visibility:visible;opacity:1}
+.tip-icon{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:#F1F5F9;color:#94A3B8;font-size:9px;font-weight:700;margin-left:4px;cursor:help;flex-shrink:0}
+
+/* Widget manager */
+.wm-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.3);z-index:400;display:flex;align-items:center;justify-content:center}
+.wm-panel{background:#fff;border-radius:10px;width:440px;max-height:80vh;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,0.15)}
+.wm-head{padding:14px 18px;border-bottom:1px solid #F1F5F9;display:flex;justify-content:space-between;align-items:center}
+.wm-head span{font-size:14px;font-weight:700}
+.wm-body{padding:14px 18px}
+.wm-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #F8FAFC}
+.wm-item label{flex:1;font-size:12px;font-weight:500;color:#1E293B;cursor:pointer;display:flex;align-items:center;gap:6px}
+.wm-item input[type=checkbox]{accent-color:#0A6847;width:16px;height:16px}
+.wm-desc{font-size:10px;color:#94A3B8;font-weight:400}
+</style>
+</head>
+<body>
+
+<!-- ═══ SIDEBAR ═══ -->
+<div class="sidebar">
+  <div class="sb-logo"><div class="sb-logo-icon">V</div><span class="sb-logo-text">Vantage</span></div>
+  <div class="sb-proj"><button class="sb-proj-btn" onclick="toggleProjMenu()"><span id="projName">My Business</span><span style="font-size:9px;opacity:0.5">&#9662;</span></button>
+    <div id="projMenu" class="hidden" style="margin-top:6px"></div>
+  </div>
+  <div class="sb-nav" id="sidebarNav"></div>
+  <div class="sb-bottom">
+    <button class="sb-item" onclick="showAcctMenu()" style="padding:6px 4px"><span class="sb-item-icon">&#9881;</span>Settings & Account</button>
+  </div>
+</div>
+
+<!-- ═══ MAIN ═══ -->
+<div class="main-wrap">
+  <div class="topbar">
+    <span class="topbar-title" id="pageTitle">Dashboard</span>
+    <div class="topbar-right">
+      <button class="acct-btn" onclick="showAcctMenu()"><span>&#128100;</span> Account</button>
+    </div>
+  </div>
+  <div class="content" id="content"></div>
+</div>
+
+<!-- Account dropdown -->
+<div id="acctDrop" class="acct-drop hidden">
+  <button class="acct-item" onclick="closeAcctMenu()">&#128100; Profile</button>
+  <button class="acct-item" onclick="closeAcctMenu()">&#9881; Settings</button>
+  <button class="acct-item" onclick="closeAcctMenu()">&#128179; Billing</button>
+  <button class="acct-item" onclick="closeAcctMenu()">&#128279; Integrations</button>
+  <button class="acct-item" onclick="closeAcctMenu()">&#128227; Notifications</button>
+  <div style="border-top:1px solid #F1F5F9;margin:4px 0"></div>
+  <button class="acct-item" style="color:#DC2626" onclick="closeAcctMenu()">Sign Out</button>
+</div>
+
+<!-- ═══ FLOATING CHAT ═══ -->
+<div id="chatPanel" class="chat-f hidden">
+  <div class="chat-hd"><span style="font-size:12px;font-weight:700">AI CFO</span><button onclick="toggleChat()" style="background:none;border:none;font-size:16px;color:#94A3B8">&#10005;</button></div>
+  <div class="chat-bd" id="chatBody"><div class="chat-m a">I'm your AI CFO. Ask about pricing, tax, margins, forecasts, scenarios like budgeting or M&A, or anything financial.</div></div>
+  <div class="chat-in"><input id="chatIn" placeholder="Ask anything..." onkeydown="if(event.key==='Enter')sendChat()"><button class="chat-snd" onclick="sendChat()">Send</button></div>
+</div>
+<button class="chat-tog" id="chatBtn" onclick="toggleChat()">AI</button>
+
+<script>
+// ═══ DATA ═══
+const STATES=[{s:"No State Tax",r:0},{s:"California",r:8.84},{s:"New York",r:7.25},{s:"Texas",r:0},{s:"Florida",r:5.5},{s:"Illinois",r:9.5},{s:"New Jersey",r:11.5},{s:"Pennsylvania",r:7.49},{s:"Georgia",r:5.09},{s:"N. Carolina",r:2},{s:"Massachusetts",r:8},{s:"Virginia",r:6},{s:"Washington",r:0},{s:"Ohio",r:0},{s:"Tennessee",r:6.5},{s:"Colorado",r:4.4},{s:"Arizona",r:4.9},{s:"Oregon",r:7.6},{s:"Minnesota",r:9.8},{s:"DC",r:8.25}];
+const ENTS=[{id:"c_corp",n:"C-Corp"},{id:"s_corp",n:"S-Corp"},{id:"llc",n:"LLC"},{id:"sole_prop",n:"Sole Prop"},{id:"partnership",n:"Partnership"},{id:"nonprofit",n:"501(c)(3)"}];
+const CHS=["DTC","Wholesale","Amazon","Retail","Other"];
+const MO=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const SEA=[.85,.88,.95,1.02,1.08,1.12,1.15,1.10,1.05,1,.92,.88];
+const BRK=[{a:0,b:11925,r:10},{a:11925,b:48475,r:12},{a:48475,b:103350,r:22},{a:103350,b:197300,r:24},{a:197300,b:250525,r:32},{a:250525,b:640600,r:35},{a:640600,b:999999999,r:37}];
+function cTax(i){let t=0,r=i;for(const b of BRK){const x=Math.min(r,b.b-b.a);if(x<=0)break;t+=x*b.r/100;r-=x;}return t;}
+function $c(n){if(!n&&n!==0||isNaN(n))return"$0";const a=Math.abs(n),s=n<0?"-":"";if(a>=1e6)return s+"$"+(a/1e6).toFixed(1)+"M";if(a>=1e3)return s+"$"+(a/1e3).toFixed(1)+"K";return s+"$"+a.toFixed(0);}
+function $f(n){if(!n&&n!==0||isNaN(n))return"$0";return(n<0?"(":"")+"$"+Math.abs(Math.round(n)).toLocaleString()+(n<0?")":"");}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+
+let projects=[{id:"p1",name:"My Business",products:[],accounts:[],cExp:[],cInc:[],overrides:{},reports:[],cfg:{entity:"c_corp",stIdx:0,bonusDep:true,qbi:true,capex:0,debtSvc:0,otherDed:0,sal:0,rent:0,mkt:0,sw:0,oOp:0,cash:0,ar:0,fa:0,ap:0,ltD:0,gA:0,pA:0,cA:0,seas:20,hz:12}}];
+let pid="p1",page="dashboard",chatOpen=false,viewRpt=null,showWidgetMgr=false;
+
+// Available widgets
+const WIDGETS=[
+  {id:"quick_actions",n:"Quick Actions",d:"Shortcuts to common tasks",on:true},
+  {id:"pnl_snap",n:"P&L Snapshot",d:"Revenue, COGS, gross profit, net income at a glance",on:true},
+  {id:"balance_snap",n:"Balance Sheet",d:"Assets, liabilities, and equity summary",on:true},
+  {id:"cash_snap",n:"Cash Position",d:"Current cash, operating cash flow, ending balance",on:true},
+  {id:"acct_snap",n:"Recurring Accounts",d:"Active accounts, MRR, retention rate",on:false},
+  {id:"tax_snap",n:"Tax Summary",d:"Effective rate, total liability, entity type",on:false},
+  {id:"unit_snap",n:"Top Product Margins",d:"Unit economics for your highest-margin products",on:false},
+  {id:"expense_snap",n:"Expense Breakdown",d:"Monthly operating costs by category",on:false},
+  {id:"forecast_snap",n:"Forecast Preview",d:"Projected revenue for the next period",on:false},
+  {id:"channel_snap",n:"Channel Mix",d:"Revenue split by sales channel",on:false}
+];
+
+let activeWidgets = null; // loaded from storage
+
+function loadWidgets() {
+  try {
+    const w = localStorage.getItem("vtg3_widgets");
+    if (w) { activeWidgets = JSON.parse(w); return; }
+  } catch(e) {}
+  activeWidgets = WIDGETS.filter(w => w.on).map(w => w.id);
+}
+function saveWidgets() { try { localStorage.setItem("vtg3_widgets", JSON.stringify(activeWidgets)); } catch(e) {} }
+loadWidgets();
+
+try{const d=localStorage.getItem("vtg3");if(d){const p=JSON.parse(d);if(p&&p.length){projects=p;pid=p[0].id;}}}catch(e){}
+function save(){try{localStorage.setItem("vtg3",JSON.stringify(projects))}catch(e){}}
+function P(){return projects.find(p=>p.id===pid)||projects[0]}
+function C(){return P().cfg}
+
+function calc(){
+  const p=P(),c=C(),stR=STATES[c.stIdx]?STATES[c.stIdx].r:0,isPT=c.entity!=="c_corp"&&c.entity!=="nonprofit";
+  const cExpMo=p.cExp.reduce((s,e)=>s+(e.mo||0),0),cIncMo=p.cInc.reduce((s,e)=>s+(e.mo||0),0);
+  const acctMRR=p.accounts.filter(a=>a.status==="active").reduce((s,a)=>s+(a.val||0),0);
+  const moOp=c.sal+c.rent+c.mkt+c.sw+c.oOp+cExpMo;
+  let tR=0,tC=0;
+  for(let m=0;m<c.hz;m++){const s=1+(SEA[m%12]-1)*(c.seas/100);for(const pr of p.products){const g=(pr.growth+c.gA)/100;const u=Math.round(pr.sales*Math.pow(1+g/12,m)*s);tR+=u*pr.price*(1+c.pA/100);tC+=u*(pr.raw+pr.pack+pr.ship+pr.labor+pr.other)*(1+c.cA/100);}tR+=acctMRR+cIncMo;}
+  const ov=p.overrides,rev=ov.revenue!==undefined?ov.revenue:tR,cogs=ov.cogs!==undefined?ov.cogs:tC;
+  const gp=rev-cogs,opex=moOp*c.hz,ebitda=gp-opex,dep=c.bonusDep?c.capex:(c.capex/12)*c.hz,interest=(c.debtSvc/12)*c.hz;
+  const ebt=ebitda-dep-interest-c.otherDed,ti=Math.max(0,ebt);
+  let fT=0,sT=0,seT=0,qD=0;
+  if(c.entity==="nonprofit"){}else if(!isPT){fT=ti*21/100;sT=ti*stR/100;}else{if(c.qbi)qD=ti*20/100;const aq=ti-qD;fT=cTax(aq);sT=aq*stR/100;seT=Math.min(ti,184500)*15.3/100;}
+  const totTax=fT+sT+seT,ni=ebt-totTax,eff=ebt>0?totTax/ebt*100:0;
+  return{rev,cogs,gp,gm:rev>0?gp/rev*100:0,opex,ebitda,dep,interest,ebt,ti,qD,fT,sT,seT,totTax,eff,ni,acctMRR,moOp,
+    tA:c.cash+c.ar+c.fa+rev*0.08,tL:c.ap+c.ltD+fT*0.25,eq:(c.cash+c.ar+c.fa+rev*0.08)-(c.ap+c.ltD+fT*0.25),
+    opCF:ni+dep,netCF:ni+dep-c.capex-c.debtSvc,salT:c.sal*c.hz,rntT:c.rent*c.hz,mktT:c.mkt*c.hz,swT:c.sw*c.hz,oOpT:c.oOp*c.hz};
+}
+
+// ═══ SIDEBAR NAV ═══
+const MENU=[
+  {section:"OVERVIEW",items:[{id:"dashboard",icon:"&#9634;",l:"Dashboard"},{id:"insights",icon:"&#9733;",l:"AI Insights"}]},
+  {section:"FINANCIALS",items:[{id:"pnl",icon:"&#128200;",l:"Profit & Loss"},{id:"balance",icon:"&#127974;",l:"Balance Sheet"},{id:"cashflow",icon:"&#128176;",l:"Cash Flow"},{id:"tax",icon:"&#127963;",l:"Tax Center"}]},
+  {section:"OPERATIONS",items:[{id:"products",icon:"&#128230;",l:"Products & COGS"},{id:"accounts",icon:"&#128101;",l:"Recurring Accounts"},{id:"expenses",icon:"&#128179;",l:"Expenses"},{id:"income",icon:"&#128178;",l:"Other Income"}]},
+  {section:"PLANNING",items:[{id:"forecast",icon:"&#128200;",l:"Forecast"},{id:"scenarios",icon:"&#128256;",l:"Scenarios"},{id:"budgeting",icon:"&#128203;",l:"Budgeting"},{id:"mergers",icon:"&#129309;",l:"M&A Analysis"}]},
+  {section:"TOOLS",items:[{id:"unit_econ",icon:"&#129518;",l:"Unit Economics"},{id:"channels",icon:"&#128225;",l:"Channels"},{id:"inventory",icon:"&#128230;",l:"Inventory"},{id:"integrations",icon:"&#128279;",l:"Integrations"}]},
+  {section:"AI & REPORTS",items:[{id:"reports",icon:"&#128196;",l:"AI Reports"},{id:"learn",icon:"&#128218;",l:"Knowledge Base"}]}
+];
+
+function renderSidebar(){
+  let h="";
+  MENU.forEach(g=>{
+    h+='<div class="sb-section">'+g.section+'</div>';
+    g.items.forEach(i=>{
+      h+='<button class="sb-item'+(page===i.id?" active":"")+'" onclick="go(\''+i.id+'\')"><span class="sb-item-icon">'+i.icon+'</span>'+i.l+'</button>';
+    });
+  });
+  document.getElementById("sidebarNav").innerHTML=h;
+}
+
+function go(p){page=p;viewRpt=null;render();}
+function toggleProjMenu(){document.getElementById("projMenu").classList.toggle("hidden");}
+function showAcctMenu(){document.getElementById("acctDrop").classList.toggle("hidden");}
+function closeAcctMenu(){document.getElementById("acctDrop").classList.add("hidden");}
+function toggleChat(){chatOpen=!chatOpen;document.getElementById("chatPanel").classList.toggle("hidden",!chatOpen);document.getElementById("chatBtn").textContent=chatOpen?"\u2715":"AI";}
+
+function switchProj(id){pid=id;document.getElementById("projMenu").classList.add("hidden");render();}
+function addProj(){const n=document.getElementById("newProjIn").value.trim()||"Business "+(projects.length+1);projects.push({id:uid(),name:n,products:[],accounts:[],cExp:[],cInc:[],overrides:{},reports:[],cfg:{entity:"c_corp",stIdx:0,bonusDep:true,qbi:true,capex:0,debtSvc:0,otherDed:0,sal:0,rent:0,mkt:0,sw:0,oOp:0,cash:0,ar:0,fa:0,ap:0,ltD:0,gA:0,pA:0,cA:0,seas:20,hz:12}});pid=projects[projects.length-1].id;save();document.getElementById("projMenu").classList.add("hidden");render();}
+function renameProj(){const n=prompt("Rename business:",P().name);if(n){P().name=n;save();render();}}
+
+function sendChat(){const inp=document.getElementById("chatIn"),q=inp.value.trim();if(!q)return;inp.value="";const bd=document.getElementById("chatBody");
+  bd.innerHTML+='<div style="display:flex;justify-content:flex-end;margin-bottom:8px"><div class="chat-m u">'+q+'</div></div>';
+  const a=calc();let r="";
+  if(q.toLowerCase().includes("budget")){r="BUDGETING ANALYSIS\n\nMonthly OpEx: "+$c(a.moOp)+"\nAnnual OpEx: "+$c(a.opex)+"\n\nBreakdown:\n  Salaries: "+$c(a.salT)+"\n  Rent: "+$c(a.rntT)+"\n  Marketing: "+$c(a.mktT)+"\n  Software: "+$c(a.swT)+"\n\nTo reduce burn by 10%, cut "+$c(a.opex*0.1)+" annually.\nFocus on the largest category first.";}
+  else if(q.toLowerCase().includes("merg")||q.toLowerCase().includes("acqui")){r="M&A SCENARIO\n\nCurrent Equity: "+$c(a.eq)+"\nCurrent Revenue: "+$c(a.rev)+"\nEBITDA: "+$c(a.ebitda)+"\n\nAt a 5x EBITDA multiple, valuation: ~"+$c(a.ebitda*5)+"\nAt a 3x revenue multiple: ~"+$c(a.rev*3)+"\n\nKey factors: margin profile, growth rate, recurring revenue, customer concentration.";}
+  else if(q.toLowerCase().includes("price")||q.toLowerCase().includes("margin")){r="PRICING ANALYSIS\n\nCurrent Revenue: "+$c(a.rev)+"\nGross Margin: "+a.gm.toFixed(1)+"%\n\n10% price increase: +"+$c(a.rev*0.1)+"\nMargin impact: +3-5 pts\nRisk: 5-15% volume drop";}
+  else if(q.toLowerCase().includes("tax")){r="TAX ANALYSIS\n\nEntity: "+C().entity+"\nEffective Rate: "+a.eff.toFixed(1)+"%\nTotal Tax: "+$f(a.totTax)+"\nNet Income: "+$f(a.ni);}
+  else{r="FINANCIAL SUMMARY\n\nRevenue: "+$c(a.rev)+" ("+C().hz+"mo)\nNet Income: "+$c(a.ni)+"\nMargin: "+a.gm.toFixed(1)+"%\nEff. Tax: "+a.eff.toFixed(1)+"%\nCash Flow: "+$c(a.netCF)+"\nEquity: "+$c(a.eq)+"\nMRR: "+$c(a.acctMRR)+"\n\nTry: pricing, tax, budget, merger, forecast";}
+  P().reports=[{id:uid(),title:q.slice(0,50),date:new Date().toLocaleDateString(),response:r},...(P().reports||[]).slice(0,19)];save();
+  bd.innerHTML+='<div style="display:flex;justify-content:flex-start;margin-bottom:8px"><div class="chat-m a">'+r.replace(/\n/g,"<br>")+'<br><br><em style="font-size:10px;color:#94A3B8">Saved to AI Reports.</em></div></div>';
+  bd.scrollTop=bd.scrollHeight;
+}
+
+// ═══ HELPERS ═══
+function setCfg(k,v){C()[k]=v;save();render();}
+function addProd(){P().products.push({id:uid(),name:"",price:0,raw:0,pack:0,ship:0,labor:0,other:0,sales:0,growth:0,stock:0,reorder:0,lead:14,channel:"DTC"});save();render();}
+function rmProd(id){P().products=P().products.filter(x=>x.id!==id);save();render();}
+function setProd(id,k,v){const p=P().products.find(x=>x.id===id);if(p)p[k]=v;save();render();}
+function addAcct(){P().accounts.push({id:uid(),name:"",val:0,freq:"monthly",status:"active"});save();render();}
+function rmAcct(id){P().accounts=P().accounts.filter(x=>x.id!==id);save();render();}
+function setAcct(id,k,v){const a=P().accounts.find(x=>x.id===id);if(a)a[k]=v;save();render();}
+function addCE(){P().cExp.push({id:uid(),name:"",mo:0});save();render();}
+function rmCE(id){P().cExp=P().cExp.filter(x=>x.id!==id);save();render();}
+function setCE(id,k,v){const e=P().cExp.find(x=>x.id===id);if(e)e[k]=v;save();render();}
+function addCI(){P().cInc.push({id:uid(),name:"",mo:0});save();render();}
+function rmCI(id){P().cInc=P().cInc.filter(x=>x.id!==id);save();render();}
+function setCI(id,k,v){const e=P().cInc.find(x=>x.id===id);if(e)e[k]=v;save();render();}
+function setOvr(k){const v=prompt("Enter actual "+k+":");if(v!==null){P().overrides[k]=parseFloat(v)||0;save();render();}}
+
+// ═══ SHOPIFY INTEGRATION ═══
+function connectShopify(){
+  const shop = prompt("Enter your Shopify store URL:\n\nExample: mystore.myshopify.com");
+  if(!shop) return;
+  const clean = shop.replace("https://","").replace("http://","").replace(/\/$/,"");
+  // When deployed to Vercel, this redirects to the OAuth flow
+  const isLocal = window.location.protocol === "file:" || window.location.hostname === "localhost";
+  if(isLocal){
+    alert("Shopify OAuth requires server deployment.\n\nTo connect Shopify:\n1. Deploy to Vercel (drag & drop)\n2. Set env variables: SHOPIFY_API_KEY, SHOPIFY_API_SECRET\n3. Then the Connect button will work.\n\nFor now, you can manually add your products in the Products tab.");
+    return;
+  }
+  window.location.href = "/api/shopify-auth?shop=" + encodeURIComponent(clean);
+}
+
+async function syncShopify(){
+  try{
+    const res = await fetch("/api/shopify-data");
+    const data = await res.json();
+    if(!data.connected){alert("Shopify not connected. Please reconnect.");P().shopifyShop=null;save();render();return;}
+
+    // Import products
+    const existing = P().products.map(p=>p.shopifyId).filter(Boolean);
+    data.products.forEach(sp=>{
+      if(!existing.includes(sp.shopifyId)){
+        P().products.push({id:uid(),shopifyId:sp.shopifyId,name:sp.name,price:sp.price,raw:Math.round(sp.raw*100)/100,pack:Math.round(sp.pack*100)/100,ship:Math.round(sp.ship*100)/100,labor:Math.round(sp.labor*100)/100,other:Math.round(sp.other*100)/100,sales:sp.sales,growth:0,stock:sp.stock,reorder:sp.reorder,lead:14,channel:"DTC"});
+      } else {
+        // Update existing
+        const ep = P().products.find(p=>p.shopifyId===sp.shopifyId);
+        if(ep){ep.stock=sp.stock;ep.sales=sp.sales;ep.price=sp.price;}
+      }
+    });
+
+    P().shopifyShop = data.shop;
+    P().lastShopifySync = new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString();
+    save();
+    render();
+    alert("Synced! "+data.summary.productCount+" products imported.\n\n90-day revenue: $"+Math.round(data.summary.totalRevenue90d).toLocaleString()+"\nMonthly avg: $"+Math.round(data.summary.monthlyRevenue).toLocaleString()+"\nOrders: "+data.summary.totalOrders90d+"\nAOV: $"+data.summary.avgOrderValue);
+  }catch(e){
+    alert("Sync failed: "+e.message+"\n\nMake sure you're deployed on Vercel with Shopify connected.");
+  }
+}
+
+async function disconnectShopify(){
+  if(!confirm("Disconnect Shopify? Your imported products will stay but won't auto-update.")) return;
+  try{await fetch("/api/shopify-disconnect");}catch(e){}
+  P().shopifyShop=null;P().lastShopifySync=null;save();render();
+}
+
+// Check for Shopify callback on page load
+(function(){
+  const params = new URLSearchParams(window.location.search);
+  if(params.get("shopify")==="connected"){
+    const shop = params.get("shop");
+    if(shop){P().shopifyShop=shop;save();}
+    window.history.replaceState({}, document.title, window.location.pathname);
+    setTimeout(()=>{syncShopify();},500);
+  }
+})();
+
+function inp(l,v,blur,pfx,sfx,tooltip){return'<div><div class="il">'+l+(tooltip?'<span class="tip"><span class="tip-icon">?</span><span class="tip-text">'+tooltip+'</span></span>':'')+'</div><div class="iw">'+(pfx?'<span class="ip">'+pfx+'</span>':'')+'<input value="'+v+'" onblur="'+blur+'">'+(sfx?'<span class="is">'+sfx+'</span>':'')+'</div></div>';}
+function fr(l,v,cls,color,click){const c=cls||"";const col=color?' '+color:'';const cl=click?' ed" onclick="'+click+'"':'"';return'<div class="fr '+c+'"><span class="fr-l">'+l+'</span><span class="fr-v'+col+cl+'>'+v+'</span></div>';}
+
+function toggleWidget(id){
+  const idx = activeWidgets.indexOf(id);
+  if (idx >= 0) activeWidgets.splice(idx, 1);
+  else activeWidgets.push(id);
+  saveWidgets();
+  render();
+}
+
+function renderWidgetManager(){
+  if(!showWidgetMgr) return "";
+  let h='<div class="wm-overlay" onclick="showWidgetMgr=false;render()"><div class="wm-panel" onclick="event.stopPropagation()">';
+  h+='<div class="wm-head"><span>Customize Dashboard</span><button onclick="showWidgetMgr=false;render()" style="background:none;border:none;font-size:18px;color:#94A3B8">&#10005;</button></div>';
+  h+='<div class="wm-body"><p style="font-size:11px;color:#64748B;margin-bottom:12px">Choose which widgets appear on your dashboard. Toggle them on or off.</p>';
+  WIDGETS.forEach(w=>{
+    const checked = activeWidgets.includes(w.id);
+    h+='<div class="wm-item"><label><input type="checkbox" '+(checked?'checked':'')+' onchange="toggleWidget(\''+w.id+'\')"><div><div>'+w.n+'</div><div class="wm-desc">'+w.d+'</div></div></label></div>';
+  });
+  h+='</div></div></div>';
+  return h;
+}
+
+// ═══ RENDER ═══
+function render(){
+  document.getElementById("projName").textContent=P().name;
+  renderSidebar();
+  // Proj menu
+  let pm="";projects.forEach(p=>{pm+='<div style="display:flex;gap:4px;margin-bottom:2px"><button onclick="switchProj(\''+p.id+'\')" style="flex:1;text-align:left;padding:5px 8px;border-radius:3px;border:none;font-size:11px;font-weight:600;background:'+(p.id===pid?"#F0FDF4":"transparent")+';color:'+(p.id===pid?"#0A6847":"#475569")+'">'+p.name+'</button>'+(p.id===pid?'<button onclick="renameProj()" style="font-size:9px;color:#64748B;background:none;border:none;padding:2px">edit</button>':'')+'</div>';});
+  pm+='<div style="border-top:1px solid #F1F5F9;margin-top:4px;padding-top:4px;display:flex;gap:3px"><input id="newProjIn" placeholder="New business..." style="flex:1;font-size:10px;padding:4px 6px;border:1px solid #E2E8F0;border-radius:3px" onkeydown="if(event.key===\'Enter\')addProj()"><button onclick="addProj()" style="padding:4px 7px;border-radius:3px;border:none;background:#0A6847;color:#fff;font-size:10px;font-weight:700">+</button></div>';
+  document.getElementById("projMenu").innerHTML=pm;
+
+  const p=P(),c=C(),a=calc(),hasProd=p.products.length>0,hasData=hasProd||a.acctMRR>0;
+  const titles={dashboard:"Dashboard",insights:"AI Insights",pnl:"Profit & Loss",balance:"Balance Sheet",cashflow:"Cash Flow",tax:"Tax Center",products:"Products & COGS",accounts:"Recurring Accounts",expenses:"Expenses",income:"Other Income",forecast:"Forecast",scenarios:"Scenario Planning",budgeting:"Budgeting",mergers:"M&A Analysis",unit_econ:"Unit Economics",channels:"Channels",inventory:"Inventory",integrations:"Integrations",reports:"AI Reports",learn:"Knowledge Base"};
+  document.getElementById("pageTitle").textContent=titles[page]||"Dashboard";
+
+  let h="";
+
+  // ═══ DASHBOARD ═══
+  if(page==="dashboard"){
+    // Always show customize bar
+    h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div style="display:flex;align-items:center;gap:8px"><span style="font-size:13px;font-weight:700">Dashboard</span><span style="font-size:10px;color:#94A3B8">'+activeWidgets.length+' widgets</span></div><div style="display:flex;gap:6px"><button class="btn-s" onclick="showWidgetMgr=true;render()" style="background:#0A6847;color:#fff;border-color:#0A6847">&#43; Add / Remove Widgets</button></div></div>';
+
+    if(!hasData){
+      h+='<div style="background:#fff;border:1px solid #E2E8F0;border-radius:8px;padding:24px;text-align:center;margin-bottom:14px"><div style="font-size:28px;margin-bottom:8px">&#128202;</div><div style="font-size:14px;font-weight:700;color:#475569;margin-bottom:4px">No financial data yet</div><div style="font-size:12px;color:#94A3B8;margin-bottom:14px;max-width:400px;margin-left:auto;margin-right:auto">Add products, recurring accounts, or expenses. Your dashboard widgets will populate with real numbers.</div><div style="display:flex;gap:8px;justify-content:center"><button class="btn-p" onclick="go(\'products\');addProd()">Add Product</button><button class="btn-s" onclick="go(\'accounts\');addAcct()">Add Account</button><button class="btn-s" onclick="go(\'expenses\')">Add Expense</button></div></div>';
+      // Still show empty widget shells so user sees the layout
+      h+='<div class="widget-grid">';
+      if(activeWidgets.includes("quick_actions")){
+        h+='<div class="widget"><div class="widget-t">Quick Actions<button class="btn-d" onclick="toggleWidget(\'quick_actions\')" style="font-size:8px;padding:2px 5px">&#10005;</button></div>';
+        [{l:"Add Product",a:"go('products');addProd()"},{l:"Add Account",a:"go('accounts');addAcct()"},{l:"Add Expense",a:"go('expenses');addCE()"},{l:"Run Forecast",a:"go('forecast')"},{l:"Tax Planning",a:"go('tax')"},{l:"AI Analysis",a:"toggleChat()"}].forEach(q=>{h+='<button onclick="'+q.a+'" style="display:block;width:100%;text-align:left;padding:6px 8px;margin-bottom:3px;border-radius:4px;border:none;background:#F8FAFC;font-size:11px;color:#475569;font-weight:500">&#8250; '+q.l+'</button>';});
+        h+='</div>';
+      }
+      activeWidgets.filter(w=>w!=="quick_actions").forEach(wid=>{
+        const wDef=WIDGETS.find(x=>x.id===wid);
+        if(wDef){h+='<div class="widget"><div class="widget-t">'+wDef.n+'<button class="btn-d" onclick="toggleWidget(\''+wid+'\')" style="font-size:8px;padding:2px 5px">&#10005;</button></div><div style="text-align:center;padding:16px;color:#CBD5E1"><div style="font-size:20px;margin-bottom:4px">&#8212;</div><div style="font-size:10px">Add data to populate</div></div></div>';}
+      });
+      h+='</div>';
+    } else {
+      h+='<div class="kpi-g">';
+      [{l:"Revenue",v:$c(a.rev),s:c.hz+"mo projection"},{l:"Net Income",v:$c(a.ni),s:a.eff.toFixed(1)+"% tax rate"},{l:"Gross Margin",v:a.gm.toFixed(1)+"%",s:"GP: "+$c(a.gp)},{l:"EBITDA",v:$c(a.ebitda)},{l:"Recurring MRR",v:$c(a.acctMRR),s:p.accounts.filter(x=>x.status==="active").length+" accounts"},{l:"Free Cash Flow",v:$c(a.netCF)},{l:"Equity",v:$c(a.eq)},{l:"Tax Liability",v:$c(a.totTax)}].forEach(k=>{h+='<div class="kpi"><div class="kpi-l">'+k.l+'</div><div class="kpi-v">'+k.v+'</div>'+(k.s?'<div class="kpi-s">'+k.s+'</div>':'')+'</div>';});
+      h+='</div>';
+      h+='<div class="widget-grid">';
+      if(activeWidgets.includes("quick_actions")){
+        h+='<div class="widget"><div class="widget-t">Quick Actions<button class="btn-d" onclick="toggleWidget(\'quick_actions\')" style="font-size:8px;padding:2px 5px">&#10005;</button></div>';
+        [{l:"Add Product",a:"go('products');addProd()"},{l:"Add Account",a:"go('accounts');addAcct()"},{l:"Add Expense",a:"go('expenses');addCE()"},{l:"Run Forecast",a:"go('forecast')"},{l:"Tax Planning",a:"go('tax')"},{l:"AI Analysis",a:"toggleChat()"}].forEach(q=>{h+='<button onclick="'+q.a+'" style="display:block;width:100%;text-align:left;padding:6px 8px;margin-bottom:3px;border-radius:4px;border:none;background:#F8FAFC;font-size:11px;color:#475569;font-weight:500">&#8250; '+q.l+'</button>';});
+        h+='</div>';
+      }
+      if(activeWidgets.includes("pnl_snap")){
+        h+='<div class="widget"><div class="widget-t">P&L Snapshot<button class="btn-d" onclick="toggleWidget(\'pnl_snap\')" style="font-size:8px;padding:2px 5px">&#10005;</button></div>';
+        h+=fr("Revenue",$f(a.rev),"b");h+=fr("COGS",$f(-a.cogs),"i","red");h+=fr("Gross Profit",$f(a.gp),"b bt","green");h+=fr("OpEx",$f(-a.opex),"i");h+=fr("Net Income",$f(a.ni),"b bt",a.ni>=0?"green":"red");
+        h+='</div>';
+      }
+      if(activeWidgets.includes("balance_snap")){
+        h+='<div class="widget"><div class="widget-t">Balance Sheet<button class="btn-d" onclick="toggleWidget(\'balance_snap\')" style="font-size:8px;padding:2px 5px">&#10005;</button></div>';
+        h+=fr("Assets",$f(a.tA),"b","green");h+=fr("Liabilities",$f(a.tL),"b","red");h+=fr("Equity",$f(a.eq),"b bt","blue");
+        h+='</div>';
+      }
+      if(activeWidgets.includes("cash_snap")){
+        h+='<div class="widget"><div class="widget-t">Cash Position<button class="btn-d" onclick="toggleWidget(\'cash_snap\')" style="font-size:8px;padding:2px 5px">&#10005;</button></div>';
+        h+=fr("Cash on Hand",$f(c.cash),"b");h+=fr("Operating CF",$f(a.opCF),"","ocean");h+=fr("Net Change",$f(a.netCF),"bt",a.netCF>=0?"green":"red");h+=fr("Ending Cash",$f(c.cash+a.netCF),"b bt","amber");
+        h+='</div>';
+      }
+      if(activeWidgets.includes("acct_snap")){
+        const actAccts=p.accounts.filter(x=>x.status==="active");
+        h+='<div class="widget"><div class="widget-t">Recurring Accounts<button class="btn-d" onclick="toggleWidget(\'acct_snap\')" style="font-size:8px;padding:2px 5px">&#10005;</button></div>';
+        h+=fr("Active Accounts",actAccts.length,"b");h+=fr("Monthly Recurring",$c(a.acctMRR),"b","green");h+=fr("Annual Value",$c(a.acctMRR*12),"","ocean");
+        h+=fr("Retention",(p.accounts.length?(actAccts.length/p.accounts.length*100).toFixed(0):0)+"%","bt");
+        h+='</div>';
+      }
+      if(activeWidgets.includes("tax_snap")){
+        h+='<div class="widget"><div class="widget-t">Tax Summary<button class="btn-d" onclick="toggleWidget(\'tax_snap\')" style="font-size:8px;padding:2px 5px">&#10005;</button></div>';
+        h+=fr("Entity",c.entity.replace("_"," ").toUpperCase(),"b");h+=fr("Total Tax",$f(a.totTax),"b","red");h+=fr("Effective Rate",a.eff.toFixed(1)+"%","","amber");h+=fr("After-Tax Income",$f(a.ni),"bt",a.ni>=0?"green":"red");
+        h+='</div>';
+      }
+      if(activeWidgets.includes("unit_snap")&&p.products.length){
+        h+='<div class="widget"><div class="widget-t">Product Margins<button class="btn-d" onclick="toggleWidget(\'unit_snap\')" style="font-size:8px;padding:2px 5px">&#10005;</button></div>';
+        p.products.slice(0,4).forEach(pr=>{const uc=pr.raw+pr.pack+pr.ship+pr.labor+pr.other;const mg=pr.price>0?(pr.price-uc)/pr.price*100:0;
+          h+=fr(pr.name||"Unnamed",mg.toFixed(1)+"%","",mg>50?"green":"red");});
+        h+='</div>';
+      }
+      if(activeWidgets.includes("expense_snap")){
+        h+='<div class="widget"><div class="widget-t">Expense Breakdown<button class="btn-d" onclick="toggleWidget(\'expense_snap\')" style="font-size:8px;padding:2px 5px">&#10005;</button></div>';
+        if(c.sal)h+=fr("Salaries",$c(c.sal)+"/mo","");if(c.rent)h+=fr("Rent",$c(c.rent)+"/mo","");if(c.mkt)h+=fr("Marketing",$c(c.mkt)+"/mo","");if(c.sw)h+=fr("Software",$c(c.sw)+"/mo","");if(c.oOp)h+=fr("Other",$c(c.oOp)+"/mo","");
+        h+=fr("Total Monthly",$c(a.moOp),"b bt");
+        h+='</div>';
+      }
+      if(activeWidgets.includes("forecast_snap")){
+        h+='<div class="widget"><div class="widget-t">Forecast Preview<button class="btn-d" onclick="toggleWidget(\'forecast_snap\')" style="font-size:8px;padding:2px 5px">&#10005;</button></div>';
+        h+=fr("Projected Revenue",$c(a.rev),"b");h+=fr("Period",c.hz+" months","");h+=fr("Growth Adj",c.gA+"%","");h+=fr("Projected EBITDA",$c(a.ebitda),"bt","blue");
+        h+='</div>';
+      }
+      if(activeWidgets.includes("channel_snap")&&p.products.length){
+        h+='<div class="widget"><div class="widget-t">Channel Mix<button class="btn-d" onclick="toggleWidget(\'channel_snap\')" style="font-size:8px;padding:2px 5px">&#10005;</button></div>';
+        const chMap={};p.products.forEach(pr=>{chMap[pr.channel||"DTC"]=(chMap[pr.channel||"DTC"]||0)+1;});
+        Object.entries(chMap).forEach(([ch,ct])=>{h+=fr(ch,ct+" product"+(ct>1?"s":""),"");});
+        h+='</div>';
+      }
+      h+='</div>';
+    }
+    h+=renderWidgetManager();
+  }
+
+  // ═══ P&L ═══
+  else if(page==="pnl"){
+    h+='<div class="card"><div class="card-h"><span class="card-t">Income Statement<span class="tag tag-s">'+c.hz+' MONTHS</span></span><span style="font-size:9px;color:#94A3B8">Click values to override</span></div><div class="card-b">';
+    h+=fr("Revenue",$f(a.rev),"b","","ed\" onclick=\"setOvr('revenue')");
+    h+=fr("COGS",$f(-a.cogs),"i","red","ed\" onclick=\"setOvr('cogs')");
+    h+=fr("Gross Profit",$f(a.gp),"b bt","green","");
+    if(a.salT)h+=fr("Salaries",$f(-a.salT),"i");if(a.rntT)h+=fr("Rent",$f(-a.rntT),"i");if(a.mktT)h+=fr("Marketing",$f(-a.mktT),"i");if(a.swT)h+=fr("Software",$f(-a.swT),"i");if(a.oOpT)h+=fr("Other OpEx",$f(-a.oOpT),"i");
+    p.cExp.filter(e=>e.name&&e.mo).forEach(e=>{h+=fr(e.name,$f(-(e.mo*c.hz)),"i");});
+    if(a.opex)h+=fr("Total OpEx",$f(-a.opex),"b bt");
+    h+=fr("EBITDA",$f(a.ebitda),"b","blue");
+    if(a.dep)h+=fr("Depreciation",$f(-a.dep),"i");if(a.interest)h+=fr("Interest",$f(-a.interest),"i");if(c.otherDed)h+=fr("Other Ded.",$f(-c.otherDed),"i");
+    h+=fr("EBT",$f(a.ebt),"b bt");
+    if(a.totTax)h+=fr("Total Tax",$f(-a.totTax),"i","red");
+    h+=fr("Net Income",$f(a.ni),"b bt",a.ni>=0?"green":"red");
+    h+='<div style="font-size:9px;color:#94A3B8;text-align:right;margin-top:4px">Eff. rate: '+a.eff.toFixed(1)+'% | Margin: '+a.gm.toFixed(1)+'%</div>';
+    h+='</div></div>';
+  }
+
+  // ═══ BALANCE SHEET ═══
+  else if(page==="balance"){
+    h+='<div class="card"><div class="card-h"><span class="card-t">Balance Sheet<span class="tag tag-a">ACTUAL</span></span></div><div class="card-b">';
+    h+=fr("Cash",$f(c.cash),"i","","ed\" onclick=\"setOvr('cash')");
+    h+=fr("Receivables",$f(c.ar),"i","","ed\" onclick=\"var v=prompt('A/R:');if(v)setCfg('ar',parseFloat(v)||0)");
+    h+=fr("Inventory",$f(p.products.reduce((s,x)=>s+x.stock*(x.raw+x.pack+x.ship+x.labor+x.other),0)),"i");
+    h+=fr("Fixed Assets",$f(c.fa),"i","","ed\" onclick=\"var v=prompt('Fixed Assets:');if(v)setCfg('fa',parseFloat(v)||0)");
+    h+=fr("Total Assets",$f(a.tA),"b bt","green");
+    h+='<div style="height:8px"></div>';
+    h+=fr("Payables",$f(c.ap),"i","","ed\" onclick=\"var v=prompt('A/P:');if(v)setCfg('ap',parseFloat(v)||0)");
+    h+=fr("Tax Payable",$f(a.totTax*0.25),"i");
+    h+=fr("Long-Term Debt",$f(c.ltD),"i","","ed\" onclick=\"var v=prompt('LT Debt:');if(v)setCfg('ltD',parseFloat(v)||0)");
+    h+=fr("Total Liabilities",$f(a.tL),"b bt","red");
+    h+=fr("Equity",$f(a.eq),"b bt","blue");
+    h+='</div></div>';
+  }
+
+  // ═══ CASH FLOW ═══
+  else if(page==="cashflow"){
+    h+='<div class="card"><div class="card-h"><span class="card-t">Cash Flow Statement</span></div><div class="card-b">';
+    h+=fr("Net Income",$f(a.ni),"i");if(a.dep)h+=fr("+ Depreciation",$f(a.dep),"i","green");
+    h+=fr("Operating CF",$f(a.opCF),"b bt","ocean");
+    if(c.capex)h+=fr("CapEx",$f(-c.capex),"i","red");if(c.debtSvc)h+=fr("Debt Service",$f(-c.debtSvc),"i","red");
+    h+=fr("Net Cash Change",$f(a.netCF),"b bt",a.netCF>=0?"green":"red");
+    h+=fr("Ending Cash",$f(c.cash+a.netCF),"b","amber");
+    h+='</div></div>';
+    h+='<div class="card"><div class="card-h"><span class="card-t">Cash Flow Inputs</span></div><div class="card-b"><div class="ig">';
+    h+=inp("CapEx",c.capex,"setCfg('capex',parseFloat(this.value)||0)","$","","Annual capital expenditures — equipment, property, major purchases");
+    h+=inp("Debt Service",c.debtSvc,"setCfg('debtSvc',parseFloat(this.value)||0)","$","","Annual loan payments — principal and interest combined");
+    h+=inp("Other Deductions",c.otherDed,"setCfg('otherDed',parseFloat(this.value)||0)","$","","Other tax-deductible expenses not captured above");
+    h+=inp("Cash Balance",c.cash,"setCfg('cash',parseFloat(this.value)||0)","$","","Current cash and cash equivalents on hand");
+    h+='</div></div></div>';
+  }
+
+  // ═══ TAX ═══
+  else if(page==="tax"){
+    h+='<div class="two-col">';
+    h+='<div class="card"><div class="card-h"><span class="card-t">Tax Configuration</span></div><div class="card-b">';
+    h+='<div class="il">Entity Type</div><div class="eg">';ENTS.forEach(e=>{h+='<button class="eb'+(c.entity===e.id?" ac":"")+'" onclick="setCfg(\'entity\',\''+e.id+'\')">'+e.n+'</button>';});h+='</div>';
+    h+='<div class="il">State</div><select onchange="setCfg(\'stIdx\',parseInt(this.value))" style="width:100%;padding:7px;border-radius:4px;border:1px solid #E2E8F0;font-size:11px;margin-bottom:8px">';STATES.forEach((s,i)=>{h+='<option value="'+i+'"'+(c.stIdx===i?' selected':'')+'>'+s.s+' ('+s.r+'%)</option>';});h+='</select>';
+    h+='<label style="font-size:10px;color:#64748B;display:flex;align-items:center;gap:3px"><input type="checkbox"'+(c.bonusDep?' checked':'')+' onchange="setCfg(\'bonusDep\',this.checked)" style="accent-color:#0A6847"> 100% Bonus Depreciation</label>';
+    h+='</div></div>';
+    h+='<div class="card"><div class="card-h"><span class="card-t">Tax Breakdown</span></div><div class="card-b">';
+    h+=fr("EBT",$f(a.ebt),"b");h+=fr("Taxable Income",$f(a.ti),"b bt");
+    if(a.qD)h+=fr("QBI Deduction",$f(-a.qD),"i","green");
+    if(a.fT)h+=fr("Federal Tax",$f(a.fT),"i","red");if(a.sT)h+=fr("State Tax",$f(a.sT),"i","red");if(a.seT)h+=fr("SE Tax",$f(a.seT),"i","red");
+    h+=fr("Total Tax",$f(a.totTax),"b bt","red");h+=fr("Effective Rate",a.eff.toFixed(1)+"%","b","amber");h+=fr("Net Income",$f(a.ni),"b bt",a.ni>=0?"green":"red");
+    h+='</div></div></div>';
+  }
+
+  // ═══ PRODUCTS ═══
+  else if(page==="products"){
+    p.products.forEach(pr=>{const uc=pr.raw+pr.pack+pr.ship+pr.labor+pr.other;const mg=pr.price>0?(pr.price-uc)/pr.price*100:0;
+      h+='<div class="card"><div class="card-h"><span class="card-t">'+(pr.name||"New Product")+'</span><div style="display:flex;gap:8px;align-items:center"><span style="font-size:10px;font-weight:600;color:'+(mg>50?"#0A6847":"#94A3B8")+'">'+mg.toFixed(1)+'% margin</span><button class="btn-d" onclick="rmProd(\''+pr.id+'\')">Remove</button></div></div><div class="card-b">';
+      h+='<div style="margin-bottom:8px"><div class="il">Product Name</div><input value="'+(pr.name||"")+'" placeholder="e.g. Premium Hockey Tape" oninput="setProd(\''+pr.id+'\',\'name\',this.value)" style="width:100%;max-width:300px;font-size:12px;padding:5px 8px;border:1px solid #E2E8F0;border-radius:4px"></div>';
+      h+='<div class="ig">';
+      [["Sell Price","price","$","The retail price your customer pays per unit"],["Raw Material","raw","$","Cost of raw inputs per unit — ingredients, fabrics, materials"],["Packaging","pack","$","Cost of packaging per unit — boxes, labels, inserts"],["Shipping","ship","$","Cost to ship one unit to the customer or fulfillment center"],["Labor","labor","$","Direct labor cost per unit — assembly, handling, QC"],["Other Cost","other","$","Any other per-unit cost — duties, fees, commissions"],["Monthly Units","sales","","Average number of units you sell per month"],["Growth %","growth","","Expected month-over-month growth rate"]].forEach(([l,k,pf,tip])=>{
+        h+=inp(l,pr[k],"setProd('"+pr.id+"','"+k+"',parseFloat(this.value)||0)",pf,k==="growth"?"%":"",tip);});
+      h+='</div>';
+      h+='<div style="margin-top:8px;display:flex;gap:12px"><div><div class="il">Channel</div><select onchange="setProd(\''+pr.id+'\',\'channel\',this.value)" style="padding:5px 8px;border-radius:4px;border:1px solid #E2E8F0;font-size:11px">';CHS.forEach(ch=>{h+='<option'+(pr.channel===ch?' selected':'')+'>'+ch+'</option>';});h+='</select></div>';
+      h+=inp("Stock",pr.stock,"setProd('"+pr.id+"','stock',parseFloat(this.value)||0)");
+      h+=inp("Reorder",pr.reorder,"setProd('"+pr.id+"','reorder',parseFloat(this.value)||0)");
+      h+='</div></div></div>';
+    });
+    h+='<button class="btn-a" onclick="addProd()">+ Add Product</button>';
+  }
+
+  // ═══ ACCOUNTS ═══
+  else if(page==="accounts"){
+    if(p.accounts.length){h+='<div class="kpi-g">';
+      [{l:"Active",v:p.accounts.filter(x=>x.status==="active").length},{l:"MRR",v:$c(a.acctMRR)},{l:"Annual",v:$c(a.acctMRR*12)},{l:"Retention",v:(p.accounts.length?(p.accounts.filter(x=>x.status==="active").length/p.accounts.length*100).toFixed(0):0)+"%"}].forEach(k=>{h+='<div class="kpi"><div class="kpi-l">'+k.l+'</div><div class="kpi-v">'+k.v+'</div></div>';});
+    h+='</div>';}
+    h+='<div class="card"><div class="card-h"><span class="card-t">Recurring Customers</span><span style="font-size:9px;color:#94A3B8">Revenue feeds into forecasts</span></div><div class="card-b">';
+    if(!p.accounts.length)h+='<p style="font-size:11px;color:#94A3B8;padding:8px 0">Track repeat customers. E.g. a pro team ordering tape monthly.</p>';
+    p.accounts.forEach(ac=>{
+      h+='<div style="display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:6px;align-items:end;padding:8px 0;border-bottom:1px solid #F1F5F9">';
+      h+='<div><div class="il">Customer</div><input value="'+(ac.name||"")+'" oninput="setAcct(\''+ac.id+'\',\'name\',this.value)" placeholder="e.g. Minnesota Wild" style="width:100%;font-size:11px;padding:5px 7px;border:1px solid #E2E8F0;border-radius:4px"></div>';
+      h+=inp("Monthly $",ac.val||0,"setAcct('"+ac.id+"','val',parseFloat(this.value)||0)","$");
+      h+='<div><div class="il">Status</div><select onchange="setAcct(\''+ac.id+'\',\'status\',this.value)" style="width:100%;padding:5px;border-radius:4px;border:1px solid #E2E8F0;font-size:10px"><option value="active"'+(ac.status==="active"?" selected":"")+'>Active</option><option value="paused"'+(ac.status==="paused"?" selected":"")+'>Paused</option><option value="lost"'+(ac.status==="lost"?" selected":"")+'>Lost</option></select></div>';
+      h+='<button class="btn-d" onclick="rmAcct(\''+ac.id+'\')" style="margin-bottom:1px">x</button></div>';
+    });
+    h+='<button class="btn-a" onclick="addAcct()" style="margin-top:8px">+ Add Account</button></div></div>';
+  }
+
+  // ═══ EXPENSES ═══
+  else if(page==="expenses"){
+    h+='<div class="card"><div class="card-h"><span class="card-t">Monthly Operating Expenses<span class="tag tag-a">ACTUAL</span></span></div><div class="card-b"><div class="ig">';
+    [["Salaries","sal","Total monthly payroll including benefits and employer taxes"],["Rent","rent","Monthly rent, lease, or facility costs"],["Marketing","mkt","Monthly spend on ads, content, PR, influencers"],["Software","sw","Monthly cost of tools, SaaS, subscriptions"],["Other","oOp","Any other recurring monthly operating cost"]].forEach(([l,k,tip])=>{h+=inp(l,c[k],"setCfg('"+k+"',parseFloat(this.value)||0)","$","",tip);});
+    h+='</div>';
+    if(p.cExp.length){h+='<div style="margin-top:10px;border-top:1px solid #F1F5F9;padding-top:8px"><div class="il">Custom Expenses</div>';
+      p.cExp.forEach(ce=>{h+='<div style="display:flex;gap:6px;margin-bottom:4px;align-items:flex-end"><div style="flex:1"><input value="'+(ce.name||"")+'" placeholder="Name..." oninput="setCE(\''+ce.id+'\',\'name\',this.value)" style="width:100%;font-size:10px;padding:5px 6px;border:1px solid #E2E8F0;border-radius:3px"></div><div style="width:100px">'+inp("",ce.mo||0,"setCE('"+ce.id+"','mo',parseFloat(this.value)||0)","$")+'</div><button class="btn-d" onclick="rmCE(\''+ce.id+'\')">x</button></div>';});
+    h+='</div>';}
+    h+='<button onclick="addCE()" style="margin-top:6px;padding:4px 10px;border-radius:3px;border:1px dashed #CBD5E1;background:transparent;color:#94A3B8;font-size:9px;font-weight:600">+ Custom Expense</button>';
+    h+='</div></div>';
+  }
+
+  // ═══ OTHER INCOME ═══
+  else if(page==="income"){
+    h+='<div class="card"><div class="card-h"><span class="card-t">Additional Income Sources<span class="tag tag-a">ACTUAL</span></span></div><div class="card-b">';
+    if(!p.cInc.length)h+='<p style="font-size:10px;color:#94A3B8;margin-bottom:6px">Track non-digital revenue: cash sales, consulting, services, etc.</p>';
+    p.cInc.forEach(ci=>{h+='<div style="display:flex;gap:6px;margin-bottom:4px;align-items:flex-end"><div style="flex:1"><input value="'+(ci.name||"")+'" placeholder="Income source name..." oninput="setCI(\''+ci.id+'\',\'name\',this.value)" style="width:100%;font-size:10px;padding:5px 6px;border:1px solid #E2E8F0;border-radius:3px"></div><div style="width:100px">'+inp("",ci.mo||0,"setCI('"+ci.id+"','mo',parseFloat(this.value)||0)","$")+'</div><button class="btn-d" onclick="rmCI(\''+ci.id+'\')">x</button></div>';});
+    h+='<button onclick="addCI()" style="padding:4px 10px;border-radius:3px;border:1px dashed #CBD5E1;background:transparent;color:#94A3B8;font-size:9px;font-weight:600">+ Add Income Source</button>';
+    h+='</div></div>';
+  }
+
+  // ═══ FORECAST ═══
+  else if(page==="forecast"){
+    h+='<div class="card"><div class="card-h"><span class="card-t">Forecast Assumptions<span class="tag tag-s">SCENARIO</span></span></div><div class="card-b"><div class="ig">';
+    h+=inp("Growth Adj",c.gA,"setCfg('gA',parseFloat(this.value)||0)","","%","Adjust all product growth rates up or down by this percentage");
+    h+=inp("Price Adj",c.pA,"setCfg('pA',parseFloat(this.value)||0)","","%","Simulate a price increase or decrease across all products");
+    h+=inp("Cost Adj",c.cA,"setCfg('cA',parseFloat(this.value)||0)","","%","Model a change in COGS — e.g. supplier price increase");
+    h+=inp("Seasonality",c.seas,"setCfg('seas',parseFloat(this.value)||0)","","%","How much seasonal patterns affect your sales (0 = none, 100 = strong)");
+    h+=inp("Horizon",c.hz,"setCfg('hz',parseFloat(this.value)||0)","","mo","Number of months to project into the future");
+    h+='</div></div></div>';
+    if(!hasProd)h+='<div class="empty"><div class="empty-i">&#128200;</div><div class="empty-t">No products</div><div class="empty-d">Add products to generate forecasts.</div><button class="btn-p" onclick="go(\'products\');addProd()">Add Product</button></div>';
+  }
+
+  // ═══ SCENARIOS / BUDGETING / MERGERS ═══
+  else if(page==="scenarios"||page==="budgeting"||page==="mergers"){
+    const topics={scenarios:["What if I raise prices 15%?","What if I lose my biggest account?","What if COGS increase 20%?","What if I add a new sales channel?"],budgeting:["Create a monthly budget","How much can I spend on marketing?","What's my break-even point?","Set quarterly spending targets"],mergers:["What's my business worth?","Model acquiring a competitor","Evaluate a merger offer","Analyze strategic alternatives"]};
+    h+='<div class="widget-grid">';
+    (topics[page]||[]).forEach(q=>{h+='<div class="widget" style="cursor:pointer" onclick="document.getElementById(\'chatIn\').value=\''+q+'\';toggleChat();sendChat()"><div style="font-size:12px;font-weight:600;margin-bottom:4px">&#128172; '+q+'</div><div style="font-size:10px;color:#94A3B8">Click to ask the AI CFO</div></div>';});
+    h+='</div>';
+    h+='<div class="card"><div class="card-h"><span class="card-t">How it works</span></div><div class="card-b"><p style="font-size:12px;color:#64748B;line-height:1.6">Click any scenario above or open the AI chat (bottom right) to ask your own question. The AI will analyze your current financial data and generate a report with insights, which gets saved to the AI Reports tab.</p></div></div>';
+  }
+
+  // ═══ UNIT ECONOMICS ═══
+  else if(page==="unit_econ"){
+    if(!hasProd){h+='<div class="empty"><div class="empty-i">&#129518;</div><div class="empty-t">No products</div><div class="empty-d">Add products to see unit economics.</div><button class="btn-p" onclick="go(\'products\');addProd()">Add Product</button></div>';}
+    else{h+='<div class="card"><div class="card-h"><span class="card-t">Unit Economics<span class="tag tag-a">ACTUAL</span></span></div><div class="card-b"><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr style="border-bottom:2px solid #E2E8F0">';
+      ["Product","Price","Raw","Pack","Ship","Labor","Other","Cost","Margin","Ch"].forEach(hd=>{h+='<th style="text-align:left;padding:5px 6px;font-size:9px;font-weight:600;color:#94A3B8">'+hd+'</th>';});
+      h+='</tr></thead><tbody>';
+      p.products.forEach(pr=>{const uc=pr.raw+pr.pack+pr.ship+pr.labor+pr.other;const mg=pr.price>0?(pr.price-uc)/pr.price*100:0;
+        h+='<tr style="border-bottom:1px solid #F1F5F9"><td style="padding:5px 6px;font-weight:600">'+(pr.name||"Unnamed")+'</td><td style="padding:5px 6px;color:#0A6847">$'+pr.price.toFixed(2)+'</td><td style="padding:5px 6px">$'+pr.raw.toFixed(2)+'</td><td style="padding:5px 6px">$'+pr.pack.toFixed(2)+'</td><td style="padding:5px 6px">$'+pr.ship.toFixed(2)+'</td><td style="padding:5px 6px">$'+pr.labor.toFixed(2)+'</td><td style="padding:5px 6px">$'+pr.other.toFixed(2)+'</td><td style="padding:5px 6px;font-weight:600">$'+uc.toFixed(2)+'</td><td style="padding:5px 6px;font-weight:700;color:'+(mg>50?"#0A6847":"#DC2626")+'">'+mg.toFixed(1)+'%</td><td style="padding:5px 6px">'+pr.channel+'</td></tr>';});
+      h+='</tbody></table></div></div></div>';}
+  }
+
+  // ═══ CHANNELS ═══
+  else if(page==="channels"){
+    if(!hasProd){h+='<div class="empty"><div class="empty-i">&#128225;</div><div class="empty-t">No channel data</div><div class="empty-d">Add products and assign channels.</div><button class="btn-p" onclick="go(\'products\');addProd()">Add Product</button></div>';}
+    else{h+='<div class="card"><div class="card-h"><span class="card-t">Channel Assignment</span></div><div class="card-b">';
+      p.products.forEach(pr=>{h+='<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #F1F5F9"><span style="font-size:12px;font-weight:600;flex:1">'+(pr.name||"Unnamed")+'</span><select onchange="setProd(\''+pr.id+'\',\'channel\',this.value)" style="padding:4px 8px;border-radius:4px;border:1px solid #E2E8F0;font-size:11px">';CHS.forEach(ch=>{h+='<option'+(pr.channel===ch?' selected':'')+'>'+ch+'</option>';});h+='</select></div>';});
+    h+='</div></div>';}
+  }
+
+  // ═══ INVENTORY ═══
+  else if(page==="inventory"){
+    if(!p.products.filter(x=>x.stock>0).length){h+='<div class="empty"><div class="empty-i">&#128230;</div><div class="empty-t">No inventory</div><div class="empty-d">Add stock levels to your products.</div><button class="btn-p" onclick="go(\'products\')">Go to Products</button></div>';}
+    else{p.products.filter(x=>x.stock>0).forEach(pr=>{h+='<div class="card"><div class="card-h"><span class="card-t">'+(pr.name||"Product")+'</span><span style="font-size:10px;color:#64748B">Stock: '+pr.stock.toLocaleString()+' | Reorder: '+pr.reorder.toLocaleString()+'</span></div><div class="card-b">'+fr("Current Stock",pr.stock.toLocaleString(),"b")+fr("Reorder Point",pr.reorder.toLocaleString(),"")+fr("Lead Time",pr.lead+" days","")+'</div></div>';});}
+  }
+
+  // ═══ INTEGRATIONS ═══
+  else if(page==="integrations"){
+    h+='<div class="card"><div class="card-h"><span class="card-t">Platform Connections</span></div><div class="card-b"><p style="font-size:11px;color:#64748B;margin-bottom:12px">Connect your e-commerce and accounting platforms for automated data sync.</p>';
+
+    // Shopify - real integration
+    h+='<div style="border:2px solid #96BF48;border-radius:8px;padding:16px;margin-bottom:12px;background:#FAFFF5">';
+    h+='<div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:14px;font-weight:700;color:#1E293B;margin-bottom:2px">Shopify</div><div style="font-size:10px;color:#64748B">Auto-import products, orders, inventory, and revenue</div></div>';
+    h+='<div id="shopifyStatus">';
+    if(P().shopifyShop){
+      h+='<div style="display:flex;align-items:center;gap:8px"><span style="font-size:10px;color:#16A34A;font-weight:600">&#10003; Connected to '+P().shopifyShop+'</span><button class="btn-s" onclick="syncShopify()">Sync Now</button><button class="btn-d" onclick="disconnectShopify()">Disconnect</button></div>';
+    } else {
+      h+='<button onclick="connectShopify()" style="padding:8px 16px;border-radius:6px;border:none;background:#96BF48;color:#fff;font-size:12px;font-weight:600;cursor:pointer">Connect Shopify</button>';
+    }
+    h+='</div></div>';
+    if(P().lastShopifySync){h+='<div style="margin-top:8px;font-size:9px;color:#94A3B8">Last synced: '+P().lastShopifySync+'</div>';}
+    h+='</div>';
+
+    // Other platforms - UI only for now
+    h+='<div class="pg">';
+    ["Stripe","QuickBooks","Amazon","Xero","Square","Etsy","PayPal","WooCommerce","BigCommerce"].forEach(n=>{h+='<div class="pl"><div class="pl-n">'+n+'</div><button class="pl-b">Coming Soon</button></div>';});
+    h+='</div></div></div>';
+
+    // Instructions
+    h+='<div class="card"><div class="card-h"><span class="card-t">How Shopify Integration Works</span></div><div class="card-b">';
+    h+='<div style="font-size:12px;color:#475569;line-height:1.7">';
+    h+='<div style="margin-bottom:8px"><strong>1. Connect</strong> — Click "Connect Shopify" and enter your store URL. You\'ll be redirected to Shopify to approve access.</div>';
+    h+='<div style="margin-bottom:8px"><strong>2. Auto-Import</strong> — Vantage pulls your products, orders, inventory levels, and revenue data from the last 90 days.</div>';
+    h+='<div style="margin-bottom:8px"><strong>3. Populate</strong> — Products get added with real pricing and estimated COGS breakdown. Monthly sales are calculated from order history.</div>';
+    h+='<div style="margin-bottom:8px"><strong>4. Analyze</strong> — Your dashboard, P&L, forecasts, and unit economics all populate with real Shopify data. Ask the AI for insights.</div>';
+    h+='<div style="padding:10px;background:#FEF3C7;border-radius:6px;font-size:10px;color:#92400E;margin-top:8px"><strong>Note:</strong> Shopify integration requires deployment to Vercel. When running locally, use the manual product entry instead.</div>';
+    h+='</div></div></div>';
+  }
+
+  // ═══ AI INSIGHTS ═══
+  else if(page==="insights"){
+    h+='<div class="widget-grid">';
+    [{t:"Financial Health",d:"Revenue: "+$c(a.rev)+" | Net: "+$c(a.ni)+" | Margin: "+a.gm.toFixed(1)+"%"},{t:"Tax Efficiency",d:"Rate: "+a.eff.toFixed(1)+"% | Entity: "+c.entity+" | Tax: "+$c(a.totTax)},{t:"Cash Position",d:"Cash: "+$c(c.cash)+" | CF: "+$c(a.netCF)+" | Ending: "+$c(c.cash+a.netCF)},{t:"Growth Metrics",d:"MRR: "+$c(a.acctMRR)+" | Accounts: "+p.accounts.filter(x=>x.status==="active").length+" | Products: "+p.products.length}].forEach(w=>{h+='<div class="widget"><div class="widget-t">'+w.t+'</div><div style="font-size:11px;color:#64748B;line-height:1.5">'+w.d+'</div></div>';});
+    h+='</div>';
+    h+='<div class="card"><div class="card-h"><span class="card-t">Ask AI for Deeper Analysis</span></div><div class="card-b"><p style="font-size:12px;color:#64748B;margin-bottom:10px">Use the AI chat (bottom right) to ask specific questions about your business. The AI will analyze your data and provide actionable insights.</p><button class="btn-p" onclick="toggleChat()">Open AI Chat</button></div></div>';
+  }
+
+  // ═══ REPORTS ═══
+  else if(page==="reports"){
+    if(viewRpt){
+      h+='<button class="btn-s" onclick="viewRpt=null;render()" style="margin-bottom:12px">&#8592; Back</button>';
+      h+='<div class="card"><div class="card-h"><span class="card-t">'+viewRpt.title+'</span><span style="font-size:10px;color:#94A3B8">'+viewRpt.date+'</span></div><div class="card-b"><div style="white-space:pre-wrap;font-size:12px;line-height:1.7;padding:12px;background:#F8FAFC;border-radius:6px;border:1px solid #E2E8F0">'+viewRpt.response+'</div></div></div>';
+    }else if(!(p.reports||[]).length){h+='<div class="empty"><div class="empty-i">&#128196;</div><div class="empty-t">No reports yet</div><div class="empty-d">Ask the AI assistant a question. Reports with analysis are saved here.</div><button class="btn-p" onclick="toggleChat()">Open AI Chat</button></div>';}
+    else{h+='<div style="font-size:13px;font-weight:700;margin-bottom:12px">Saved Reports</div>';
+      (p.reports||[]).forEach((r,i)=>{h+='<div style="background:#fff;border:1px solid #E2E8F0;border-radius:6px;padding:12px 14px;margin-bottom:6px;cursor:pointer;display:flex;justify-content:space-between;align-items:center" onclick="viewRpt=P().reports['+i+'];render()"><div><div style="font-size:12px;font-weight:600">'+r.title+'</div><div style="font-size:10px;color:#94A3B8;margin-top:2px">'+r.date+'</div></div><span style="font-size:10px;color:#0A6847;font-weight:600">View &#8250;</span></div>';});}
+  }
+
+  // ═══ KNOWLEDGE BASE ═══
+  else if(page==="learn"){
+    h+='<div class="widget-grid">';
+    [{t:"CPG Unit Economics",d:"Break down raw materials, packaging, shipping, and labor costs."},{t:"Channel Strategy",d:"DTC vs Wholesale vs Amazon — margins, control, growth."},{t:"Entity Structure Guide",d:"C-Corp vs S-Corp vs LLC for your business stage."},{t:"Cash Flow Management",d:"Why profitable brands still run out of cash."},{t:"Recurring Revenue Models",d:"Build predictable B2B account revenue."},{t:"Tax Planning 2026",d:"Bonus depreciation, QBI, entity optimization."},{t:"Inventory Planning",d:"Reorder points, safety stock, demand forecasting."},{t:"Scenario Modeling",d:"Model pricing and channel decisions before committing."},{t:"M&A Fundamentals",d:"Valuation multiples, due diligence, deal structure."},{t:"Budgeting Best Practices",d:"Zero-based budgeting, variance analysis, targets."}].forEach(r=>{h+='<div class="widget" style="cursor:pointer"><div style="font-size:12px;font-weight:700;margin-bottom:3px">'+r.t+'</div><div style="font-size:10px;color:#64748B;line-height:1.5">'+r.d+'</div></div>';});
+    h+='</div>';
+  }
+
+  document.getElementById("content").innerHTML=h;
+}
+
+render();
+</script>
+</body>
+</html>
